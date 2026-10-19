@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INF 1e9 // Representing infinity
+
+int n;
+int matrix[20][20];       // Adjusted size assuming max n is around 16-18
+int memo[1 << 16][20];    // (1 << n) states by n cities
+
+// Helper function to find the minimum of two integers
+int min(int a, int b) {
+    return (a < b) ? a : b;
+}
+
+// TSP recursive function with memoization
+int tsp(int mask, int u) {
+    // Base case: All cities have been visited
+    if (mask == (1 << n) - 1) {
+        return (matrix[u][0] != -1) ? matrix[u][0] : INF;
+    }
+    
+    // Return cached result if already computed
+    if (memo[mask][u] != -1) {
+        return memo[mask][u];
+    }
+    
+    int min_cost = INF;
+    
+    // Try visiting all other unvisited cities
+    for (int v = 0; v < n; v++) {
+        // Check if city v is unvisited and a valid connection exists
+        if (!(mask & (1 << v)) && matrix[u][v] != -1) {
+            int cost = matrix[u][v] + tsp(mask | (1 << v), v);
+            min_cost = min(min_cost, cost);
+        }
+    }
+    
+    return memo[mask][u] = min_cost;
+}
+
+int main() {
+    // Read the number of cities
+    if (scanf("%d", &n) != 1) return 0;
+    
+    // Read the cost matrix
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            scanf("%d", &matrix[i][j]);
+        }
+    }
+    
+    // Initialize memoization table with -1
+    int total_states = 1 << n;
+    for (int i = 0; i < total_states; i++) {
+        for (int j = 0; j < n; j++) {
+            memo[i][j] = -1;
+        }
+    }
+    
+    // Start from city 0, with only city 0 visited (mask = 1)
+    int ans = tsp(1, 0);
+    
+    // Print the optimal cost (-1 if no valid route exists)
+    if (ans >= INF) {
+        printf("-1\n");
+    } else {
+        printf("%d\n", ans);
+    }
+    
+    return 0;
+}
